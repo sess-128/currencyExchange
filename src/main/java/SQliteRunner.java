@@ -1,5 +1,7 @@
 import dao.CurrencyDao;
+import dao.ExchangeRateDao;
 import entity.Currency;
+import entity.ExchangeRate;
 import utils.ConnectionManager;
 
 import javax.imageio.plugins.jpeg.JPEGImageReadParam;
@@ -11,26 +13,9 @@ import java.util.Optional;
 public class SQliteRunner {
 
     public static void main(String[] args) {
-        var sql = """
-                INSERT INTO currencies (code, full_name, sign
-                ) VALUES ('RUB', 'Russian Ruble', '₽')
-                """;
+        var exchangeRate = ExchangeRateDao.getInstance().findAll();
+        System.out.println(exchangeRate);
 
-//        Optional<Currency> currency = CurrencyDao.getInstance().findById(3);
-//        System.out.println(currency);
-
-//        Currency currency = new Currency(5,"KZT", "Tenge", "₸");
-//        CurrencyDao.getInstance().update(currency);
-
-
-        CurrencyDao.getInstance().delete(4);
-        try (var connection = ConnectionManager.get();
-             var preparedStatement = connection.prepareStatement(sql)) {
-
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
 
     }
 }

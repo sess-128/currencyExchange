@@ -5,6 +5,7 @@ import entity.Currency;
 import exception.DaoException;
 import utils.ConnectionManager;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -87,7 +88,8 @@ public class CurrencyDao implements Dao<Currency> {
 
     @Override
     public List<Currency> findAll() {
-        try (var connection = ConnectionManager.get(); var preparedStatement = connection.prepareStatement(FIND_ALL_SQL)) {
+        try (var connection = ConnectionManager.get();
+             var preparedStatement = connection.prepareStatement(FIND_ALL_SQL)) {
             List<Currency> currencies = new ArrayList<>();
 
             var resultSet = preparedStatement.executeQuery();
@@ -103,7 +105,15 @@ public class CurrencyDao implements Dao<Currency> {
 
     @Override
     public Optional<Currency> findById(int id) {
-        try (var connection = ConnectionManager.get(); var preparedStatement = connection.prepareStatement(FIND_BY_ID_SQL)) {
+        try (var connection = ConnectionManager.get()){
+            return findById(id, connection);
+        } catch (SQLException e) {
+            throw new DaoException(e);
+        }
+    }
+
+    public Optional<Currency> findById(int id, Connection connection){
+        try (var preparedStatement = connection.prepareStatement(FIND_BY_ID_SQL)) {
             preparedStatement.setInt(1, id);
 
             var resultSet = preparedStatement.executeQuery();
@@ -122,7 +132,8 @@ public class CurrencyDao implements Dao<Currency> {
 
     @Override
     public Currency save(Currency currency) {
-        try (var connection = ConnectionManager.get(); var preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
+        try (var connection = ConnectionManager.get();
+             var preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, currency.getCode());
             preparedStatement.setString(2, currency.getFullName());
             preparedStatement.setString(3, currency.getSign());
@@ -143,7 +154,8 @@ public class CurrencyDao implements Dao<Currency> {
 
     @Override
     public void update(Currency currency) {
-        try (var connection = ConnectionManager.get(); var preparedStatement = connection.prepareStatement(UPDATE_SQL)) {
+        try (var connection = ConnectionManager.get();
+             var preparedStatement = connection.prepareStatement(UPDATE_SQL)) {
             preparedStatement.setString(1, currency.getCode());
             preparedStatement.setString(2, currency.getFullName());
             preparedStatement.setString(3, currency.getSign());
@@ -174,6 +186,9 @@ public class CurrencyDao implements Dao<Currency> {
     }
 
     private static Currency buildCurrency(ResultSet resultSet) throws SQLException {
-        return new Currency(resultSet.getInt("id"), resultSet.getString("code"), resultSet.getString("full_name"), resultSet.getString("sign"));
+        return new Currency(resultSet.getInt("id"),
+                resultSet.getString("code"),
+                resultSet.getString("full_name"),
+                resultSet.getString("sign"));
     }
 }
