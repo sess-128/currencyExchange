@@ -20,5 +20,6 @@ public class PropertiesUtil {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
     }
 }

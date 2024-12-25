@@ -1,7 +1,5 @@
 package entity;
 
-import dao.CurrencyDao;
-
 public class ExchangeRate {
     private int id;
     private Currency baseCurrencyId;

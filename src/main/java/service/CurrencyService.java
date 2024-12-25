@@ -4,21 +4,21 @@ import dao.CurrencyDao;
 import dto.CurrencyDto;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 
 public class CurrencyService {
     private static final CurrencyService INSTANCE = new CurrencyService();
 
     private final CurrencyDao currencyDao = CurrencyDao.getInstance();
 
-    private CurrencyService() {
-    }
+    private CurrencyService() {}
 
-    public List<CurrencyDto> findAll (){
+    public List<CurrencyDto> findAllByPair (int id) {
         return currencyDao.findAll().stream()
                 .map(currency -> new CurrencyDto(
-                    currency.getId(),
+                        currency.getId(),
                         """
                                 %s - %s - %s
                                 """.formatted(currency.getCode(), currency.getFullName(), currency.getSign())

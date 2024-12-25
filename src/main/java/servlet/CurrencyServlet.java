@@ -8,28 +8,26 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.CurrencyService;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 @WebServlet("/currency")
 public class CurrencyServlet extends HttpServlet {
+
     private final CurrencyService currencyService = CurrencyService.getInstance();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/html");
-        resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        var currencyId = Integer.valueOf(req.getParameter("currency"));
 
         try (var printWriter = resp.getWriter()) {
-            printWriter.write("<h1>Список валют</h1>");
+            printWriter.write("<h1>Валюты</h1>");
             printWriter.write("<ul>");
-            currencyService.findAll().forEach(currencyDto -> {
-                printWriter.write("""
-                                <li>
-                                    <a href="/currency=%d">%s</a>
-                                </li>
-                                """.formatted(currencyDto.getId(), currencyDto.getDescription()));
-            });
+            currencyService.findAllByPair(currencyId).forEach(currencyDto -> printWriter.write("""
+                    <li>
+                        %s
+                    </li>
+                    """.formatted(currencyDto.getId())));
             printWriter.write("</ul>");
         }
+
     }
 }
