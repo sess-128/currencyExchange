@@ -1,12 +1,12 @@
 package entity;
 
 public class ExchangeRate {
-    private int id;
+    private Integer id;
     private Currency baseCurrencyId;
     private Currency targetCurrencyId;
-    private long rate;
+    private float rate;
 
-    public ExchangeRate(int id, Currency baseCurrencyId, Currency targetCurrencyId, long rate) {
+    public ExchangeRate(Integer id, Currency baseCurrencyId, Currency targetCurrencyId, float rate) {
         this.id = id;
         this.baseCurrencyId = baseCurrencyId;
         this.targetCurrencyId = targetCurrencyId;
@@ -16,11 +16,11 @@ public class ExchangeRate {
     public ExchangeRate() {
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -40,7 +40,7 @@ public class ExchangeRate {
         this.targetCurrencyId = targetCurrencyId;
     }
 
-    public long getRate() {
+    public float getRate() {
         return rate;
     }
 
