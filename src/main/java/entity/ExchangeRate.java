@@ -2,14 +2,14 @@ package entity;
 
 public class ExchangeRate {
     private Integer id;
-    private Currency baseCurrencyId;
-    private Currency targetCurrencyId;
+    private Currency baseCurrency;
+    private Currency targetCurrency;
     private float rate;
 
-    public ExchangeRate(Integer id, Currency baseCurrencyId, Currency targetCurrencyId, float rate) {
+    public ExchangeRate(Integer id, Currency baseCurrency, Currency targetCurrency, float rate) {
         this.id = id;
-        this.baseCurrencyId = baseCurrencyId;
-        this.targetCurrencyId = targetCurrencyId;
+        this.baseCurrency = baseCurrency;
+        this.targetCurrency = targetCurrency;
         this.rate = rate;
     }
 
@@ -24,20 +24,20 @@ public class ExchangeRate {
         this.id = id;
     }
 
-    public Currency getBaseCurrencyId() {
-        return baseCurrencyId;
+    public Currency getBaseCurrency() {
+        return baseCurrency;
     }
 
-    public void setBaseCurrencyId(Currency baseCurrencyId) {
-        this.baseCurrencyId = baseCurrencyId;
+    public void setBaseCurrency(Currency baseCurrency) {
+        this.baseCurrency = baseCurrency;
     }
 
-    public Currency getTargetCurrencyId() {
-        return targetCurrencyId;
+    public Currency getTargetCurrency() {
+        return targetCurrency;
     }
 
-    public void setTargetCurrencyId(Currency targetCurrencyId) {
-        this.targetCurrencyId = targetCurrencyId;
+    public void setTargetCurrency(Currency targetCurrency) {
+        this.targetCurrency = targetCurrency;
     }
 
     public float getRate() {
@@ -52,8 +52,8 @@ public class ExchangeRate {
     public String toString() {
         return "ExchangeRate{" + "\n" +
                "id=" + id + "\n" +
-               ", baseCurrencyId=" + baseCurrencyId + "\n" +
-               ", TargetCurrencyId=" + targetCurrencyId + "\n" +
+               ", baseCurrencyId=" + baseCurrency + "\n" +
+               ", TargetCurrencyId=" + targetCurrency + "\n" +
                ", rate=" + rate + "\n" +
                '}';
     }

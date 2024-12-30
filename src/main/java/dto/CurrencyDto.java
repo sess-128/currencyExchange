@@ -6,13 +6,13 @@ public class CurrencyDto {
 
     private final Integer id;
     private final String code;
-    private final String fullName;
+    private final String name;
     private final String sign;
 
-    public CurrencyDto(Integer id, String code, String fullName, String sign) {
+    public CurrencyDto(Integer id, String code, String name, String sign) {
         this.id = id;
         this.code = code;
-        this.fullName = fullName;
+        this.name = name;
         this.sign = sign;
     }
 
@@ -24,8 +24,8 @@ public class CurrencyDto {
         return code;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getName() {
+        return name;
     }
 
     public String getSign() {
@@ -36,12 +36,12 @@ public class CurrencyDto {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         CurrencyDto that = (CurrencyDto) o;
-        return id == that.id && Objects.equals(code, that.code) && Objects.equals(fullName, that.fullName) && Objects.equals(sign, that.sign);
+        return id == that.id && Objects.equals(code, that.code) && Objects.equals(name, that.name) && Objects.equals(sign, that.sign);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, code, fullName, sign);
+        return Objects.hash(id, code, name, sign);
     }
 
 
@@ -50,7 +50,7 @@ public class CurrencyDto {
         return "CurrencyDto{" +
                "id=" + id +
                ", code='" + code + '\'' +
-               ", fullName='" + fullName + '\'' +
+               ", fullName='" + name + '\'' +
                ", sign='" + sign + '\'' +
                '}';
     }

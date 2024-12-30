@@ -15,20 +15,17 @@ import service.errorHandler.ErrorsHandler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-@WebServlet("/exchange-rates")
+@WebServlet("/exchangeRates")
 public class ExchangeRatesServlet extends HttpServlet {
     private final ExchangeRateService exchangeRateService = ExchangeRateService.getInstance();
     private final ErrorsHandler errorsHandler = ErrorsHandler.getInstance();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
-
-
         List<ExchangeRateDto> exchangeRateDto = exchangeRateService.findAll();
 
         String jsonResponse = new ObjectMapper().writeValueAsString(exchangeRateDto);
@@ -41,12 +38,12 @@ public class ExchangeRatesServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
-
         String baseCurrencyCode = req.getParameter("baseCurrencyCode");
         String targetCurrencyCode = req.getParameter("targetCurrencyCode");
         Float rate = Float.parseFloat((req.getParameter("rate")));
+
+        String reqParameter = req.getParameter("rate");
+        BigDecimal rate2 = new BigDecimal(reqParameter);
 
         if (baseCurrencyCode == null || targetCurrencyCode == null || rate == null) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);

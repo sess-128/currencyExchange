@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-@WebServlet("/exchange-rate/*")
+@WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
     private final ExchangeRateService exchangeRateService = ExchangeRateService.getInstance();
     private final ErrorsHandler errorsHandler = ErrorsHandler.getInstance();
@@ -23,9 +23,6 @@ public class ExchangeRateServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
-
         var pathInfo = req.getPathInfo();
 
         if (pathInfo == null || pathInfo.length() < RATE_LENGTH_W_SLASH) {
@@ -51,9 +48,6 @@ public class ExchangeRateServlet extends HttpServlet {
 
     @Override
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
-
         var pathInfo = req.getPathInfo();
 
         String baseCurrencyCode = pathInfo.substring(1, 4);

@@ -25,7 +25,7 @@ public class ExchangeRateService {
     public List<ExchangeRateDto> findAll() {
         return exchangeRateDao.findAll().stream()
                 .map(exchangeRate -> new ExchangeRateDto(
-                        exchangeRate.getId(), exchangeRate.getBaseCurrencyId(), exchangeRate.getTargetCurrencyId(), exchangeRate.getRate()
+                        exchangeRate.getId(), exchangeRate.getBaseCurrency(), exchangeRate.getTargetCurrency(), exchangeRate.getRate()
                 ))
                 .collect(toList());
     }
@@ -37,7 +37,7 @@ public class ExchangeRateService {
         return exchangeRateDao.findByPair(base, target).stream()
                 .findFirst()
                 .map(exchangeRate -> new ExchangeRateDto(
-                        exchangeRate.getId(), exchangeRate.getBaseCurrencyId(), exchangeRate.getTargetCurrencyId(), exchangeRate.getRate()
+                        exchangeRate.getId(), exchangeRate.getBaseCurrency(), exchangeRate.getTargetCurrency(), exchangeRate.getRate()
                 ));
     }
 
@@ -51,7 +51,7 @@ public class ExchangeRateService {
         ExchangeRate exchangeRate = new ExchangeRate(null, baseCurrency, targetCurrency, rate);
         ExchangeRate saved = exchangeRateDao.save(exchangeRate);
 
-        return new ExchangeRateDto(saved.getId(), saved.getBaseCurrencyId(), saved.getTargetCurrencyId(), saved.getRate());
+        return new ExchangeRateDto(saved.getId(), saved.getBaseCurrency(), saved.getTargetCurrency(), saved.getRate());
     }
 
     public ExchangeRateDto update(String baseCurrencyCode, String targetCurrencyCode, float rates) {

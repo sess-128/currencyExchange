@@ -19,7 +19,7 @@ public class CurrencyService {
     public List<CurrencyDto> findAll () {
         return currencyDao.findAll().stream()
                 .map(currency -> new CurrencyDto(
-                        currency.getId(), currency.getCode(), currency.getFullName(), currency.getSign()
+                        currency.getId(), currency.getCode(), currency.getName(), currency.getSign()
                 ))
                 .collect(toList());
     }
@@ -28,13 +28,13 @@ public class CurrencyService {
         return currencyDao.findByCode(code).stream()
                 .findFirst()
                 .map(currency -> new CurrencyDto(
-                        currency.getId(), currency.getCode(), currency.getFullName(), currency.getSign()
+                        currency.getId(), currency.getCode(), currency.getName(), currency.getSign()
                 ));
     }
 
     public CurrencyDto save(Currency currency) {
         Currency save = currencyDao.save(currency);
-        return new CurrencyDto(save.getId(), save.getCode(), save.getFullName(), save.getSign());
+        return new CurrencyDto(save.getId(), save.getCode(), save.getName(), save.getSign());
     }
 
     public boolean currencyExist (String code) {

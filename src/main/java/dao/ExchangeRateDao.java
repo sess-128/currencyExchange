@@ -1,8 +1,6 @@
 package dao;
 
-import entity.Currency;
 import entity.ExchangeRate;
-import exception.CurrencyNotFoundException;
 import exception.DaoException;
 import exception.ExchangeRateAlreadyExistException;
 import utils.ConnectionManager;
@@ -114,8 +112,8 @@ public class ExchangeRateDao implements Dao<ExchangeRate> {
         try (var connection = ConnectionManager.get();
              var preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
 
-            preparedStatement.setInt(1, exchangeRate.getBaseCurrencyId().getId());
-            preparedStatement.setInt(2, exchangeRate.getTargetCurrencyId().getId());
+            preparedStatement.setInt(1, exchangeRate.getBaseCurrency().getId());
+            preparedStatement.setInt(2, exchangeRate.getTargetCurrency().getId());
             preparedStatement.setFloat(3, exchangeRate.getRate());
 
             preparedStatement.executeUpdate();
@@ -136,8 +134,8 @@ public class ExchangeRateDao implements Dao<ExchangeRate> {
         try (var connection = ConnectionManager.get();
              var preparedStatement = connection.prepareStatement(UPDATE_SQL)) {
             preparedStatement.setFloat(1, exchangeRate.getRate());
-            preparedStatement.setObject(2, exchangeRate.getBaseCurrencyId().getId());
-            preparedStatement.setObject(3, exchangeRate.getTargetCurrencyId().getId());
+            preparedStatement.setObject(2, exchangeRate.getBaseCurrency().getId());
+            preparedStatement.setObject(3, exchangeRate.getTargetCurrency().getId());
 
             preparedStatement.executeUpdate();
 

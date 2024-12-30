@@ -116,7 +116,7 @@ public class CurrencyDao implements Dao<Currency> {
         try (var connection = ConnectionManager.get();
              var preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, currency.getCode());
-            preparedStatement.setString(2, currency.getFullName());
+            preparedStatement.setString(2, currency.getName());
             preparedStatement.setString(3, currency.getSign());
 
             preparedStatement.executeUpdate();
@@ -126,7 +126,7 @@ public class CurrencyDao implements Dao<Currency> {
             if (generatedKeys.next()) {
                 id = generatedKeys.getInt(1);
             }
-            return new Currency(id, currency.getCode(), currency.getFullName(), currency.getSign());
+            return new Currency(id, currency.getCode(), currency.getName(), currency.getSign());
 
         } catch (SQLException e) {
             throw new CurrencyAlreadyExistException(e);
@@ -138,7 +138,7 @@ public class CurrencyDao implements Dao<Currency> {
         try (var connection = ConnectionManager.get();
              var preparedStatement = connection.prepareStatement(UPDATE_SQL)) {
             preparedStatement.setString(1, currency.getCode());
-            preparedStatement.setString(2, currency.getFullName());
+            preparedStatement.setString(2, currency.getName());
             preparedStatement.setString(3, currency.getSign());
             preparedStatement.setInt(4, currency.getId());
 
