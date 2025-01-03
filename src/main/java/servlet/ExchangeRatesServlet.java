@@ -2,7 +2,6 @@ package servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dto.ExchangeRateDto;
-import entity.ExchangeRate;
 import exception.CurrencyNotFoundException;
 import exception.ExchangeRateAlreadyExistException;
 import jakarta.servlet.ServletException;
@@ -16,8 +15,9 @@ import service.errorHandler.ErrorsHandler;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
+
+import static filters.Validator.isValidCurrencyCode;
 
 @WebServlet("/exchangeRates")
 public class ExchangeRatesServlet extends HttpServlet {
@@ -48,6 +48,12 @@ public class ExchangeRatesServlet extends HttpServlet {
         if (baseCurrencyCode == null || targetCurrencyCode == null || rate == null) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.getWriter().write(errorsHandler.getMessage(resp));
+            return;
+        }
+
+        if (!isValidCurrencyCode(baseCurrencyCode) || !isValidCurrencyCode(targetCurrencyCode)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write(errorsHandler.getMessage(4217));
             return;
         }
 

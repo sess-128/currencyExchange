@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 
+import static filters.Validator.isValidCurrencyCode;
+
 @WebServlet("/exchange")
 public class ExchangeServlet extends HttpServlet {
     private final ExchangeRateService exchangeRateService = ExchangeRateService.getInstance();
@@ -20,13 +22,22 @@ public class ExchangeServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
-
         try {
             String from = req.getParameter("from");
             String to = req.getParameter("to");
-            float amount = Float.parseFloat(req.getParameter("amount"));
+            Float amount = Float.parseFloat(req.getParameter("amount"));
+
+            if (from.isBlank() || to.isBlank() || amount == null) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write(errorsHandler.getMessage(resp));
+                return;
+            }
+
+            if (!isValidCurrencyCode(from) || !isValidCurrencyCode(to)) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write(errorsHandler.getMessage(4217));
+                return;
+            }
 
             ExchangeDto converted = exchangeRateService.convert(from, to, amount);
 

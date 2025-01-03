@@ -15,6 +15,12 @@ public class ErrorsHandler {
         MessageResponse messageResponse = new MessageResponse(messageByCode);
         return new ObjectMapper().writeValueAsString(messageResponse);
     }
+    public String getMessage (int error) throws JsonProcessingException {
+
+        String messageByCode = ErrorMessages.getMessageByCode(error);
+        MessageResponse messageResponse = new MessageResponse(messageByCode);
+        return new ObjectMapper().writeValueAsString(messageResponse);
+    }
 
     public static ErrorsHandler getInstance() {
         return INSTANCE;

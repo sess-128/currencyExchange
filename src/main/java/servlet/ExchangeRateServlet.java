@@ -1,8 +1,8 @@
 package servlet;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dto.ExchangeRateDto;
 import exception.ExchangeRateNotFoundException;
+import filters.UniMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -12,37 +12,45 @@ import service.ExchangeRateService;
 import service.errorHandler.ErrorsHandler;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+
+import static filters.Validator.isValidCurrencyCode;
 
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
     private final ExchangeRateService exchangeRateService = ExchangeRateService.getInstance();
     private final ErrorsHandler errorsHandler = ErrorsHandler.getInstance();
-    private static final int RATE_LENGTH_W_SLASH = 7;
+
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        var pathInfo = req.getPathInfo();
+        var codes = req.getPathInfo().replaceAll("/", "");
 
-        if (pathInfo == null || pathInfo.length() < RATE_LENGTH_W_SLASH) {
+        if (codes.length() != 6) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.getWriter().write(errorsHandler.getMessage(resp));
             return;
         }
 
-        var code = pathInfo.substring(1);
+        String baseCode = codes.substring(0, 3);
+        String targetCode = codes.substring(3);
 
-        Optional<ExchangeRateDto> optionalExchangeRateDto = exchangeRateService.findByPair(code);
+        if (!isValidCurrencyCode(baseCode) || !isValidCurrencyCode(targetCode)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write(errorsHandler.getMessage(4217));
+            return;
+        }
+
+        Optional<ExchangeRateDto> optionalExchangeRateDto = exchangeRateService.findByPair(codes);
 
         if (optionalExchangeRateDto.isEmpty()) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             resp.getWriter().write(errorsHandler.getMessage(resp));
+            return;
         }
 
         try (var printWriter = resp.getWriter()) {
-            String jsonResponse = new ObjectMapper().writeValueAsString(optionalExchangeRateDto.get());
-            printWriter.write(jsonResponse);
+            printWriter.write(UniMapper.toJSON(optionalExchangeRateDto));
         }
     }
 
@@ -60,19 +68,23 @@ public class ExchangeRateServlet extends HttpServlet {
             return;
         }
 
+        if (!isValidCurrencyCode(baseCurrencyCode) || !isValidCurrencyCode(targetCurrencyCode)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write(errorsHandler.getMessage(4217));
+            return;
+        }
+
         float rates = Float.parseFloat((stringRate));
 
         try {
             ExchangeRateDto updated = exchangeRateService.update(baseCurrencyCode, targetCurrencyCode, rates);
 
-            String jsonResponse = new ObjectMapper().writeValueAsString(updated);
-
             try (var printWriter = resp.getWriter()) {
-                printWriter.write(jsonResponse);
+                printWriter.write(UniMapper.toJSON(updated));
             }
-        }catch (ExchangeRateNotFoundException e) {
+        } catch (ExchangeRateNotFoundException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            errorsHandler.getMessage(resp);
+            resp.getWriter().write(errorsHandler.getMessage(resp));
         }
 
     }

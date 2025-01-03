@@ -2,6 +2,7 @@ package servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dto.CurrencyDto;
+import filters.UniMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -11,28 +12,27 @@ import service.CurrencyService;
 import service.errorHandler.ErrorsHandler;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+
+import static filters.Validator.isValidCurrencyCode;
 
 @WebServlet("/currency/*")
 public class CurrencyServlet extends HttpServlet {
     private static final CurrencyService currencyService = CurrencyService.getInstance();
-    private static final ErrorsHandler errorsHandler = ErrorsHandler.getInstance();
-    private static final int CURRENCY_LENGHT_W_SLASH = 4;
+    private final ErrorsHandler errorsHandler = ErrorsHandler.getInstance();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        var pathInfo = req.getPathInfo();
+        var code = req.getPathInfo().replaceAll("/", "");
 
-        if (pathInfo == null || pathInfo.length() < CURRENCY_LENGHT_W_SLASH) {
+        if (!isValidCurrencyCode(code)) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(errorsHandler.getMessage(resp));
+            resp.getWriter().write(errorsHandler.getMessage(4217));
             return;
         }
 
-        var code = pathInfo.substring(1).trim();
-
         Optional<CurrencyDto> optionalCurrencyDto = currencyService.findByCode(code);
+
         if (optionalCurrencyDto.isEmpty()) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             resp.getWriter().write(errorsHandler.getMessage(resp));
@@ -40,10 +40,7 @@ public class CurrencyServlet extends HttpServlet {
         }
 
         try (var writer = resp.getWriter()) {
-            String jsonResponse = new ObjectMapper().writeValueAsString(optionalCurrencyDto.get());
-            writer.write(jsonResponse);
+            writer.write(UniMapper.toJSON(optionalCurrencyDto));
         }
-
     }
-
 }

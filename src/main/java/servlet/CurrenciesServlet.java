@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dto.CurrencyDto;
 import entity.Currency;
 import exception.CurrencyAlreadyExistException;
+import filters.UniMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -13,8 +14,9 @@ import service.CurrencyService;
 import service.errorHandler.ErrorsHandler;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
+
+import static filters.Validator.isValidCurrencyCode;
 
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet {
@@ -39,20 +41,33 @@ public class CurrenciesServlet extends HttpServlet {
         String name = req.getParameter("name");
         String sign = req.getParameter("sign");
 
-        if (code == null || name == null || sign == null) {
+        if (name == null || name.isBlank()) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write(errorsHandler.getMessage(resp));
+            return;
+        }
+        if (code == null || code.isBlank()) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write(errorsHandler.getMessage(resp));
+            return;
+        }
+        if (sign == null || sign.isBlank()) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.getWriter().write(errorsHandler.getMessage(resp));
             return;
         }
 
+        if (!isValidCurrencyCode(code)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write(errorsHandler.getMessage(4217));
+            return;
+        }
         try {
             CurrencyDto currencyDto = currencyService.save(new Currency(null, code, name, sign));
-            String jsonResponse = new ObjectMapper().writeValueAsString(currencyDto);
 
             try (var printWriter = resp.getWriter()) {
-                printWriter.write(jsonResponse);
+                printWriter.write(UniMapper.toJSON(currencyDto));
             }
-
         } catch (CurrencyAlreadyExistException e) {
             resp.setStatus(HttpServletResponse.SC_CONFLICT);
             resp.getWriter().write(errorsHandler.getMessage(resp));
