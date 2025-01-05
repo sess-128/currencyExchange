@@ -16,10 +16,6 @@ import java.util.Optional;
 
 public class CurrencyDao implements Dao<Currency> {
     private static final CurrencyDao INSTANCE = new CurrencyDao();
-    private static final String DELETE_SQL = """
-            DELETE FROM currencies
-            WHERE id = ?
-            """;
     private static final String SAVE_SQL = """
             INSERT INTO currencies (code, full_name, sign)
             VALUES (?, ?, ?);
@@ -152,15 +148,9 @@ public class CurrencyDao implements Dao<Currency> {
 
     @Override
     public boolean delete(int id) {
-        try (var connection = ConnectionManager.get(); var preparedStatement = connection.prepareStatement(DELETE_SQL)) {
-
-            preparedStatement.setInt(1, id);
-
-            return preparedStatement.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new DaoException(e);
-        }
+        return false;
     }
+
 
     public static CurrencyDao getInstance() {
         return INSTANCE;

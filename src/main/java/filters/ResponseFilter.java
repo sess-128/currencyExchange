@@ -23,19 +23,15 @@ public class ResponseFilter implements Filter {
 
         String URI = httpServletRequest.getRequestURI();
 
-        if (URI.equals("/*")) {
-            httpServletResponse.setContentType("application/json");
-        } else {
-            httpServletResponse.setContentType("text/html");
-        }
-
+//        if (URI.equals("/*")) {
+//            httpServletResponse.setContentType("application/json");
+//        } else {
+//            httpServletResponse.setContentType("text/html");
+//        }
+        httpServletResponse.setContentType("application/json");
         httpServletResponse.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         filterChain.doFilter(servletRequest, servletResponse);
     }
 
-    @Override
-    public void destroy() {
-        Filter.super.destroy();
-    }
 }

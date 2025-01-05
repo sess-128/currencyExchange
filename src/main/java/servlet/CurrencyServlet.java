@@ -22,7 +22,7 @@ public class CurrencyServlet extends HttpServlet {
     private final ErrorsHandler errorsHandler = ErrorsHandler.getInstance();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         var code = req.getPathInfo().replaceAll("/", "");
 
         if (!isValidCurrencyCode(code)) {

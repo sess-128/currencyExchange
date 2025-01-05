@@ -5,7 +5,6 @@ import dto.CurrencyDto;
 import entity.Currency;
 import exception.CurrencyAlreadyExistException;
 import filters.UniMapper;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +24,7 @@ public class CurrenciesServlet extends HttpServlet {
     private final ErrorsHandler errorsHandler = ErrorsHandler.getInstance();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         List<CurrencyDto> currenciesDto = currencyService.findAll();
 
         String jsonResponse = new ObjectMapper().writeValueAsString(currenciesDto);
@@ -36,7 +35,7 @@ public class CurrenciesServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String code = req.getParameter("code");
         String name = req.getParameter("name");
         String sign = req.getParameter("sign");

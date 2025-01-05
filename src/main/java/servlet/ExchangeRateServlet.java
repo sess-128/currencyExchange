@@ -3,7 +3,6 @@ package servlet;
 import dto.ExchangeRateDto;
 import exception.ExchangeRateNotFoundException;
 import filters.UniMapper;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,8 +13,6 @@ import service.errorHandler.ErrorsHandler;
 import java.io.IOException;
 import java.util.Optional;
 
-import static filters.Validator.isValidCurrencyCode;
-
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
     private final ExchangeRateService exchangeRateService = ExchangeRateService.getInstance();
@@ -23,7 +20,7 @@ public class ExchangeRateServlet extends HttpServlet {
 
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         var codes = req.getPathInfo().replaceAll("/", "");
 
         if (codes.length() != 6) {
@@ -35,11 +32,11 @@ public class ExchangeRateServlet extends HttpServlet {
         String baseCode = codes.substring(0, 3);
         String targetCode = codes.substring(3);
 
-        if (!isValidCurrencyCode(baseCode) || !isValidCurrencyCode(targetCode)) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(errorsHandler.getMessage(4217));
-            return;
-        }
+//        if (!isValidCurrencyCode(baseCode) || !isValidCurrencyCode(targetCode)) {
+//            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+//            resp.getWriter().write(errorsHandler.getMessage(4217));
+//            return;
+//        }
 
         Optional<ExchangeRateDto> optionalExchangeRateDto = exchangeRateService.findByPair(codes);
 
@@ -55,7 +52,7 @@ public class ExchangeRateServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         var pathInfo = req.getPathInfo();
 
         String baseCurrencyCode = pathInfo.substring(1, 4);
@@ -68,11 +65,11 @@ public class ExchangeRateServlet extends HttpServlet {
             return;
         }
 
-        if (!isValidCurrencyCode(baseCurrencyCode) || !isValidCurrencyCode(targetCurrencyCode)) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(errorsHandler.getMessage(4217));
-            return;
-        }
+//        if (!isValidCurrencyCode(baseCurrencyCode) || !isValidCurrencyCode(targetCurrencyCode)) {
+//            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+//            resp.getWriter().write(errorsHandler.getMessage(4217));
+//            return;
+//        }
 
         float rates = Float.parseFloat((stringRate));
 

@@ -25,7 +25,7 @@ public class ExchangeRatesServlet extends HttpServlet {
     private final ErrorsHandler errorsHandler = ErrorsHandler.getInstance();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         List<ExchangeRateDto> exchangeRateDto = exchangeRateService.findAll();
 
         String jsonResponse = new ObjectMapper().writeValueAsString(exchangeRateDto);
@@ -37,7 +37,7 @@ public class ExchangeRatesServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String baseCurrencyCode = req.getParameter("baseCurrencyCode");
         String targetCurrencyCode = req.getParameter("targetCurrencyCode");
         Float rate = Float.parseFloat((req.getParameter("rate")));
@@ -51,11 +51,11 @@ public class ExchangeRatesServlet extends HttpServlet {
             return;
         }
 
-        if (!isValidCurrencyCode(baseCurrencyCode) || !isValidCurrencyCode(targetCurrencyCode)) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(errorsHandler.getMessage(4217));
-            return;
-        }
+//        if (!isValidCurrencyCode(baseCurrencyCode) || !isValidCurrencyCode(targetCurrencyCode)) {
+//            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+//            resp.getWriter().write(errorsHandler.getMessage(4217));
+//            return;
+//        }
 
         try {
             try {

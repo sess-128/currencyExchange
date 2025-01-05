@@ -11,7 +11,6 @@ import service.errorHandler.ErrorsHandler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 
 import static filters.Validator.isValidCurrencyCode;
 
@@ -25,30 +24,41 @@ public class ExchangeServlet extends HttpServlet {
         try {
             String from = req.getParameter("from");
             String to = req.getParameter("to");
-            Float amount = Float.parseFloat(req.getParameter("amount"));
+            Float amount;
 
-            if (from.isBlank() || to.isBlank() || amount == null) {
+
+            if (from == null || to == null || from.isBlank() || to.isBlank()) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 resp.getWriter().write(errorsHandler.getMessage(resp));
                 return;
             }
 
-            if (!isValidCurrencyCode(from) || !isValidCurrencyCode(to)) {
+            try {
+                amount = Float.parseFloat(req.getParameter("amount"));
+            } catch (NumberFormatException e) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write(errorsHandler.getMessage(4217));
+                resp.getWriter().write(errorsHandler.getMessage(resp));
                 return;
             }
+
+//            if (!isValidCurrencyCode(from) || !isValidCurrencyCode(to)) {
+//                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+//                resp.getWriter().write(errorsHandler.getMessage(4217));
+//                return;
+//            }
 
             ExchangeDto converted = exchangeRateService.convert(from, to, amount);
 
             String jsonResponse = new ObjectMapper().writeValueAsString(converted);
 
+            resp.setStatus(HttpServletResponse.SC_OK);
             try (PrintWriter writer = resp.getWriter()) {
                 writer.write(jsonResponse);
             }
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             resp.getWriter().write(errorsHandler.getMessage(resp));
         }
     }
+
 }

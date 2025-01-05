@@ -12,10 +12,6 @@ import java.util.Optional;
 
 public class ExchangeRateDao implements Dao<ExchangeRate> {
     private static final ExchangeRateDao INSTANCE = new ExchangeRateDao();
-    private static final String DELETE_SQL = """
-            DELETE FROM exchange_rates
-            WHERE id = ?
-            """;
     private static final String SAVE_SQL = """
             INSERT INTO exchange_rates (
                 base_currency_id,
@@ -44,7 +40,6 @@ public class ExchangeRateDao implements Dao<ExchangeRate> {
             """;
 
     private final CurrencyDao currencyDao = CurrencyDao.getInstance();
-    private final ExchangeRateDao exchangeRateDao = ExchangeRateDao.getInstance();
 
     private ExchangeRateDao() {
     }
