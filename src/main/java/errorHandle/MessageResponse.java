@@ -1,7 +1,7 @@
-package service.errorHandler;
+package errorHandle;
 
 public class MessageResponse {
-    private final String message;
+    private String message;
 
     public MessageResponse(String message) {
         this.message = message;
@@ -9,5 +9,9 @@ public class MessageResponse {
 
     public String getMessage() {
         return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

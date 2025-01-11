@@ -4,11 +4,12 @@ import dao.CurrencyDao;
 import dao.ExchangeRateDao;
 import dto.ExchangeDto;
 import dto.ExchangeRateDto;
-import entity.Currency;
-import entity.ExchangeRate;
-import exception.CurrencyNotFoundException;
-import exception.ExchangeRateNotFoundException;
+import model.Currency;
+import model.ExchangeRate;
+import exceptions.CurrencyNotFoundException;
+import exceptions.ExchangeRateNotFoundException;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,7 +42,7 @@ public class ExchangeRateService {
                 ));
     }
 
-    public ExchangeRateDto save(String baseCurrencyCode, String targetCurrencyCode, float rate) {
+    public ExchangeRateDto save(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) {
         Currency baseCurrency = currencyDao.findByCode(baseCurrencyCode)
                 .orElseThrow(CurrencyNotFoundException::new);
         Currency targetCurrency = currencyDao.findByCode(targetCurrencyCode)
@@ -54,7 +55,7 @@ public class ExchangeRateService {
         return new ExchangeRateDto(saved.getId(), saved.getBaseCurrency(), saved.getTargetCurrency(), saved.getRate());
     }
 
-    public ExchangeRateDto update(String baseCurrencyCode, String targetCurrencyCode, float rates) {
+    public ExchangeRateDto update(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rates) {
 
         Currency baseCurrency = currencyDao.findByCode(baseCurrencyCode)
                 .orElseThrow(CurrencyNotFoundException::new);
@@ -70,7 +71,71 @@ public class ExchangeRateService {
         return new ExchangeRateDto(exchangeRate1.getId(), baseCurrency, targetCurrency, rates);
     }
 
-    public ExchangeDto convert(String baseCurrencyCode, String targetCurrencyCode, float amount) {
+    public Optional<ExchangeDto> convert2(String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) {
+        Optional<ExchangeDto> currentConvert = getCurrentConvert(baseCurrencyCode, targetCurrencyCode, amount);
+        if (currentConvert.isPresent()) {
+            return currentConvert;
+        }
+        Optional<ExchangeDto> reverseConvert = getReverseConvert(baseCurrencyCode, targetCurrencyCode, amount);
+        if (reverseConvert.isPresent()){
+            return reverseConvert;
+        }
+
+        return getUsdConvert(baseCurrencyCode, targetCurrencyCode, amount);
+    }
+
+
+    private Optional<ExchangeDto> getUsdConvert (String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) {
+        String usd = "UDS";
+
+        Optional<ExchangeRate> fromUSDToBase = exchangeRateDao.findByPair(usd, baseCurrencyCode);
+        Optional<ExchangeRate> fromUSDToTarget = exchangeRateDao.findByPair(usd, targetCurrencyCode);
+
+        BigDecimal baseRate = fromUSDToBase.get().getRate();
+        BigDecimal targetRate = fromUSDToTarget.get().getRate();
+
+        BigDecimal rate = targetRate.divide(baseRate);
+        BigDecimal convertedAmount = rate.multiply(amount);
+
+        return Optional.of(new ExchangeDto(
+                fromUSDToBase.get().getBaseCurrency(),
+                fromUSDToTarget.get().getTargetCurrency(),
+                rate,
+                amount,
+                convertedAmount));
+    }
+
+    private Optional<ExchangeDto> getCurrentConvert(String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) {
+        Optional<ExchangeRateDto> pair = findByPair(baseCurrencyCode + targetCurrencyCode);
+        BigDecimal rate = pair.get().rate();
+        BigDecimal convertedAmount = rate.multiply(amount);
+
+        Optional<Currency> base = currencyDao.findByCode(baseCurrencyCode);
+        Optional<Currency> target = currencyDao.findByCode(targetCurrencyCode);
+        return Optional.of(new ExchangeDto(
+                base.get(),
+                target.get(),
+                rate,
+                amount,
+                convertedAmount));
+    }
+
+    private Optional<ExchangeDto> getReverseConvert(String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount){
+        Optional<ExchangeRateDto> pair = findByPair(targetCurrencyCode + baseCurrencyCode);
+        BigDecimal rate = BigDecimal.ONE.divide(pair.get().rate());
+        BigDecimal convertedAmount = rate.multiply(amount);
+        Optional<Currency> base = currencyDao.findByCode(baseCurrencyCode);
+        Optional<Currency> target = currencyDao.findByCode(targetCurrencyCode);
+        return Optional.of(new ExchangeDto(
+                base.get(),
+                target.get(),
+                rate,
+                amount,
+                convertedAmount));
+
+    }
+
+    public ExchangeDto convert(String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) {
         Currency baseCurrency = currencyDao.findByCode(baseCurrencyCode)
                 .orElseThrow(CurrencyNotFoundException::new);
         Currency targetCurrency = currencyDao.findByCode(targetCurrencyCode)
@@ -79,29 +144,30 @@ public class ExchangeRateService {
 
         Optional<ExchangeRate> exchangeRate = exchangeRateDao.findByPair(baseCurrencyCode, targetCurrencyCode);
         if (exchangeRate.isPresent()) {
-            float rate = exchangeRate.get().getRate();
-            float convertedAmount = rate * amount;
+            BigDecimal rate = exchangeRate.get().getRate();
+            BigDecimal convertedAmount = rate.multiply(amount);
             return new ExchangeDto(baseCurrency, targetCurrency, rate, amount, convertedAmount);
         }
 
         Optional<ExchangeRate> exchangeRateReverse = exchangeRateDao.findByPair(targetCurrencyCode, baseCurrencyCode);
         if (exchangeRateReverse.isPresent()) {
-            float rateReverse = 1 / (exchangeRateReverse.get().getRate());
-            float convertedAmount = rateReverse * amount;
+            BigDecimal rateReverse = BigDecimal.ONE.divide(exchangeRateReverse.get().getRate());
+            BigDecimal convertedAmount = rateReverse.multiply(amount);
             return new ExchangeDto(targetCurrency, baseCurrency, rateReverse, amount, convertedAmount);
         }
 
         Optional<ExchangeRate> fromUSDToBase = exchangeRateDao.findByPair(currencyUSD, baseCurrencyCode);
         Optional<ExchangeRate> fromUSDToTarget = exchangeRateDao.findByPair(currencyUSD, targetCurrencyCode);
 
-        float baseRate = fromUSDToBase.get().getRate();
-        float targetRate = fromUSDToTarget.get().getRate();
+        BigDecimal baseRate = fromUSDToBase.get().getRate();
+        BigDecimal targetRate = fromUSDToTarget.get().getRate();
 
-        float rateFromUsd = targetRate / baseRate;
-        float convertedAmount = rateFromUsd * amount;
+        BigDecimal rateFromUsd = targetRate.divide(baseRate);
+        BigDecimal convertedAmount = rateFromUsd.multiply(amount);
 
         return new ExchangeDto(baseCurrency, targetCurrency, rateFromUsd, amount, convertedAmount);
     }
+
 
     public static ExchangeRateService getInstance() {
         return INSTANCE;

@@ -1,16 +1,18 @@
 package dao;
 
-import entity.ExchangeRate;
-import exception.DaoException;
-import exception.ExchangeRateAlreadyExistException;
+import exceptions.DaoException;
+import exceptions.ExchangeRateAlreadyExistException;
+import model.ExchangeRate;
 import utils.ConnectionManager;
 
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class ExchangeRateDao implements Dao<ExchangeRate> {
+public class ExchangeRateDao implements Dao<Integer, ExchangeRate> {
     private static final ExchangeRateDao INSTANCE = new ExchangeRateDao();
     private static final String SAVE_SQL = """
             INSERT INTO exchange_rates (
@@ -38,12 +40,10 @@ public class ExchangeRateDao implements Dao<ExchangeRate> {
             WHERE base_currency_id = (SELECT id FROM currencies WHERE code = ?)
               AND target_currency_id = (SELECT id FROM currencies WHERE code = ?);
             """;
-
     private final CurrencyDao currencyDao = CurrencyDao.getInstance();
 
     private ExchangeRateDao() {
     }
-
     @Override
     public List<ExchangeRate> findAll() {
         try (var connection = ConnectionManager.get();
@@ -62,7 +62,7 @@ public class ExchangeRateDao implements Dao<ExchangeRate> {
     }
 
     @Override
-    public Optional<ExchangeRate> findById(int id) {
+    public Optional<ExchangeRate> findById(Integer id) {
 
         try (var connection = ConnectionManager.get();
              var preparedStatement = connection.prepareStatement(FIND_BY_ID_SQL)) {
@@ -109,7 +109,7 @@ public class ExchangeRateDao implements Dao<ExchangeRate> {
 
             preparedStatement.setInt(1, exchangeRate.getBaseCurrency().getId());
             preparedStatement.setInt(2, exchangeRate.getTargetCurrency().getId());
-            preparedStatement.setFloat(3, exchangeRate.getRate());
+            preparedStatement.setBigDecimal(3, exchangeRate.getRate());
 
             preparedStatement.executeUpdate();
             var generatedKeys = preparedStatement.getGeneratedKeys();
@@ -128,7 +128,7 @@ public class ExchangeRateDao implements Dao<ExchangeRate> {
     public void update(ExchangeRate exchangeRate) {
         try (var connection = ConnectionManager.get();
              var preparedStatement = connection.prepareStatement(UPDATE_SQL)) {
-            preparedStatement.setFloat(1, exchangeRate.getRate());
+            preparedStatement.setBigDecimal(1, exchangeRate.getRate());
             preparedStatement.setObject(2, exchangeRate.getBaseCurrency().getId());
             preparedStatement.setObject(3, exchangeRate.getTargetCurrency().getId());
 
@@ -139,20 +139,6 @@ public class ExchangeRateDao implements Dao<ExchangeRate> {
             throw new DaoException(e);
         }
     }
-
-    @Override
-    public boolean delete(int id) {
-        try (var connection = ConnectionManager.get();
-             var preparedStatement = connection.prepareStatement(UPDATE_SQL)) {
-
-            preparedStatement.setInt(1, id);
-
-            return preparedStatement.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new DaoException(e);
-        }
-    }
-
     public static ExchangeRateDao getInstance() {
         return INSTANCE;
     }
@@ -164,7 +150,8 @@ public class ExchangeRateDao implements Dao<ExchangeRate> {
                         resultSet.getStatement().getConnection()).orElse(null),
                 currencyDao.findById(resultSet.getInt("target_currency_id"),
                         resultSet.getStatement().getConnection()).orElse(null),
-                resultSet.getLong("rate")
+                resultSet.getBigDecimal("rate")
         );
     }
+
 }

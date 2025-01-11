@@ -2,7 +2,7 @@ package service;
 
 import dao.CurrencyDao;
 import dto.CurrencyDto;
-import entity.Currency;
+import model.Currency;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,10 +35,6 @@ public class CurrencyService {
     public CurrencyDto save(Currency currency) {
         Currency save = currencyDao.save(currency);
         return new CurrencyDto(save.getId(), save.getCode(), save.getName(), save.getSign());
-    }
-
-    public boolean currencyExist (String code) {
-        return findByCode(code).isPresent();
     }
 
     public static CurrencyService getInstance() {

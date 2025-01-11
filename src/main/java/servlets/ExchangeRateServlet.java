@@ -1,24 +1,26 @@
-package servlet;
+package servlets;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dto.ExchangeRateDto;
-import exception.ExchangeRateNotFoundException;
-import filters.UniMapper;
+import exceptions.ExchangeRateNotFoundException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.ExchangeRateService;
-import service.errorHandler.ErrorsHandler;
+
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Optional;
 
-import static filters.Validator.isValidCurrencyCode;
+import static errorHandle.ErrorHandler.getMessage;
+import static errorHandle.Validation.isValidCurrencyCode;
 
-@WebServlet("/exchangeRate/*")
+@WebServlet(name = "ExchangeRateServlet", urlPatterns = "/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
     private final ExchangeRateService exchangeRateService = ExchangeRateService.getInstance();
-    private final ErrorsHandler errorsHandler = ErrorsHandler.getInstance();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
 
     @Override
@@ -27,7 +29,7 @@ public class ExchangeRateServlet extends HttpServlet {
 
         if (codes.length() != 6) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(errorsHandler.getMessage(resp));
+            resp.getWriter().write(getMessage(resp));
             return;
         }
 
@@ -36,20 +38,21 @@ public class ExchangeRateServlet extends HttpServlet {
 
         if (!isValidCurrencyCode(baseCode) || !isValidCurrencyCode(targetCode)) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(errorsHandler.getMessage(4217));
+            resp.getWriter().write(getMessage(4217));
             return;
         }
 
         Optional<ExchangeRateDto> optionalExchangeRateDto = exchangeRateService.findByPair(codes);
 
-        if (optionalExchangeRateDto.isEmpty()) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(errorsHandler.getMessage(resp));
-            return;
-        }
-
-        try (var printWriter = resp.getWriter()) {
-            printWriter.write(UniMapper.toJSON(optionalExchangeRateDto));
+        try {
+            if (optionalExchangeRateDto.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().write(getMessage(resp));
+                return;
+            }
+            resp.getWriter().write(objectMapper.writeValueAsString(optionalExchangeRateDto));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -63,27 +66,37 @@ public class ExchangeRateServlet extends HttpServlet {
 
         if (baseCurrencyCode.isBlank() || targetCurrencyCode.isBlank() || stringRate.isBlank()) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(errorsHandler.getMessage(resp));
+            resp.getWriter().write(getMessage(resp));
             return;
         }
 
         if (!isValidCurrencyCode(baseCurrencyCode) || !isValidCurrencyCode(targetCurrencyCode)) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(errorsHandler.getMessage(4217));
+            resp.getWriter().write(getMessage(4217));
             return;
         }
 
-        float rates = Float.parseFloat((stringRate));
+        BigDecimal rates;
+        try {
+            rates = new BigDecimal(stringRate);
+            if (rates.scale() > 6) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write("Запись ставки должна иметь не более 6 знаков после запятой.");
+                return;
+            }
+
+        } catch (NumberFormatException e) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("Неверный формат ставки. Пожалуйста, укажите числовое значение.");
+            return;
+        }
 
         try {
             ExchangeRateDto updated = exchangeRateService.update(baseCurrencyCode, targetCurrencyCode, rates);
-
-            try (var printWriter = resp.getWriter()) {
-                printWriter.write(UniMapper.toJSON(updated));
-            }
+            resp.getWriter().write(objectMapper.writeValueAsString(updated));
         } catch (ExchangeRateNotFoundException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write(errorsHandler.getMessage(resp));
+            resp.getWriter().write(getMessage(resp));
         }
 
     }

@@ -1,9 +1,9 @@
 package dao;
 
-import entity.Currency;
-import exception.CurrencyAlreadyExistException;
-import exception.CurrencyNotFoundException;
-import exception.DaoException;
+import exceptions.CurrencyAlreadyExistException;
+import exceptions.CurrencyNotFoundException;
+import exceptions.DaoException;
+import model.Currency;
 import utils.ConnectionManager;
 
 import java.sql.Connection;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class CurrencyDao implements Dao<Currency> {
+public class CurrencyDao implements Dao<Integer, Currency> {
     private static final CurrencyDao INSTANCE = new CurrencyDao();
     private static final String SAVE_SQL = """
             INSERT INTO currencies (code, full_name, sign)
@@ -41,9 +41,6 @@ public class CurrencyDao implements Dao<Currency> {
             WHERE code = ?
             """;
 
-    private CurrencyDao() {
-    }
-
     @Override
     public List<Currency> findAll() {
         try (var connection = ConnectionManager.get();
@@ -62,7 +59,7 @@ public class CurrencyDao implements Dao<Currency> {
     }
 
     @Override
-    public Optional<Currency> findById(int id) {
+    public Optional<Currency> findById(Integer id) {
         try (var connection = ConnectionManager.get()) {
             return findById(id, connection);
         } catch (SQLException e) {
@@ -70,7 +67,7 @@ public class CurrencyDao implements Dao<Currency> {
         }
     }
 
-    public Optional<Currency> findById(int id, Connection connection) {
+    public Optional<Currency> findById(Integer id, Connection connection) {
         try (var preparedStatement = connection.prepareStatement(FIND_BY_ID_SQL)) {
             preparedStatement.setInt(1, id);
 
@@ -143,14 +140,7 @@ public class CurrencyDao implements Dao<Currency> {
         } catch (SQLException e) {
             throw new DaoException(e);
         }
-
     }
-
-    @Override
-    public boolean delete(int id) {
-        return false;
-    }
-
 
     public static CurrencyDao getInstance() {
         return INSTANCE;

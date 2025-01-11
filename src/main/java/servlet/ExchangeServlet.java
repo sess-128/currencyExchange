@@ -11,6 +11,7 @@ import service.errorHandler.ErrorsHandler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 
 import static filters.Validator.isValidCurrencyCode;
 
@@ -24,7 +25,7 @@ public class ExchangeServlet extends HttpServlet {
         try {
             String from = req.getParameter("from");
             String to = req.getParameter("to");
-            Float amount;
+            BigDecimal amount;
 
 
             if (from == null || to == null || from.isBlank() || to.isBlank()) {
@@ -34,18 +35,18 @@ public class ExchangeServlet extends HttpServlet {
             }
 
             try {
-                amount = Float.parseFloat(req.getParameter("amount"));
+                amount = BigDecimal.valueOf(Float.parseFloat(req.getParameter("amount")));
             } catch (NumberFormatException e) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 resp.getWriter().write(errorsHandler.getMessage(resp));
                 return;
             }
 
-//            if (!isValidCurrencyCode(from) || !isValidCurrencyCode(to)) {
-//                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//                resp.getWriter().write(errorsHandler.getMessage(4217));
-//                return;
-//            }
+            if (!isValidCurrencyCode(from) || !isValidCurrencyCode(to)) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write(errorsHandler.getMessage(4217));
+                return;
+            }
 
             ExchangeDto converted = exchangeRateService.convert(from, to, amount);
 

@@ -1,37 +1,47 @@
 package filters;
 
-
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
-@WebFilter("/*")
+@WebFilter(urlPatterns = "/*")
 public class ResponseFilter implements Filter {
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        Filter.super.init(filterConfig);
-    }
+    private static final String[] API_SERVLETS = {
+            "/currency/",
+            "/currencies",
+            "/exchangeRate/",
+            "/exchangeRates/",
+            "/exchange",
 
+    };
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-        HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
+        servletResponse.setCharacterEncoding("UTF-8");
+        servletRequest.setCharacterEncoding("UTF-8");
 
-        String URI = httpServletRequest.getRequestURI();
+        String requestURI = ((HttpServletRequest) servletRequest).getRequestURI();
 
-//        if (URI.equals("/*")) {
-//            httpServletResponse.setContentType("application/json");
-//        } else {
-//            httpServletResponse.setContentType("text/html");
-//        }
-        httpServletResponse.setContentType("application/json");
-        httpServletResponse.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        if (requestURI.endsWith(".css") || requestURI.endsWith(".js")) {
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
 
+        if (isAPIServlet(requestURI)){
+            servletResponse.setContentType("application/json");
+        } else{
+            servletResponse.setContentType("text/html");
+        }
         filterChain.doFilter(servletRequest, servletResponse);
     }
 
+    private boolean isAPIServlet (String URI) {
+        for (String servlet : API_SERVLETS){
+            if (URI.startsWith(servlet)){
+                return true;
+            }
+        }
+        return false;
+    }
 }

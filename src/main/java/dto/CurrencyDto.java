@@ -2,48 +2,19 @@ package dto;
 
 import java.util.Objects;
 
-public class CurrencyDto {
-
-    private final Integer id;
-    private final String code;
-    private final String name;
-    private final String sign;
-
-    public CurrencyDto(Integer id, String code, String name, String sign) {
-        this.id = id;
-        this.code = code;
-        this.name = name;
-        this.sign = sign;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getSign() {
-        return sign;
-    }
+public record CurrencyDto(Integer id, String code, String name, String sign) {
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         CurrencyDto that = (CurrencyDto) o;
-        return id == that.id && Objects.equals(code, that.code) && Objects.equals(name, that.name) && Objects.equals(sign, that.sign);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, code, name, sign);
+        return Objects.hashCode(id);
     }
-
 
     @Override
     public String toString() {
@@ -55,4 +26,3 @@ public class CurrencyDto {
                '}';
     }
 }
-

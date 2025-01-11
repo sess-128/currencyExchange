@@ -12,7 +12,6 @@ public class UniMapper {
     public static String toJSON (Optional<?> optionalDto) throws JsonProcessingException {
         return new ObjectMapper().writeValueAsString(optionalDto.get());
     }
-
     public static String toJSON(CurrencyDto currencyDto) throws JsonProcessingException {
         return new ObjectMapper().writeValueAsString(currencyDto);
     }
