@@ -1,6 +1,7 @@
 package model;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 
 public class ExchangeRate {
@@ -13,7 +14,7 @@ public class ExchangeRate {
         this.id = id;
         this.baseCurrency = baseCurrency;
         this.targetCurrency = targetCurrency;
-        this.rate = rate;
+        this.rate = rate.setScale(2, RoundingMode.HALF_EVEN);
     }
 
     public ExchangeRate() {

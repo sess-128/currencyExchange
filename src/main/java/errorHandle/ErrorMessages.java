@@ -1,7 +1,7 @@
 package errorHandle;
 
 public enum ErrorMessages {
-    NOT_ISO_FORMAT (4217 , "Currency code must be in ISO 4217 format"),
+    NOT_ISO_FORMAT (4217 , "Код валюты должен быть в формате ISO 4217"),
     BAD_REQUEST (400, "Отсутствует нужное поле валюты или пары"), // 400
     SERVER_ERROR (500, "База данных недоступна"), // 500
     NOT_FOUND (404, "Пара или валюта отсутствует в БД"), // 404
