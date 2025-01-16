@@ -11,11 +11,12 @@ import service.CurrencyService;
 import java.io.IOException;
 import java.util.Optional;
 
-import static errorHandle.ErrorHandler.getMessage;
-import static errorHandle.Validation.isValidCurrencyCode;
+import static utils.errorHandle.ErrorHandler.getMessage;
+import static utils.errorHandle.Validation.isValidCurrencyCode;
 
 @WebServlet(name = "CurrencyServlet", urlPatterns = "/currency/*")
 public class CurrencyServlet extends HttpServlet {
+    private static final int NOT_ISO_FORMAT = 4217;
     private static final CurrencyService currencyService = CurrencyService.getInstance();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -31,7 +32,7 @@ public class CurrencyServlet extends HttpServlet {
 
         if (!isValidCurrencyCode(code)) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(getMessage(4217));
+            resp.getWriter().write(getMessage(NOT_ISO_FORMAT));
             return;
         }
 

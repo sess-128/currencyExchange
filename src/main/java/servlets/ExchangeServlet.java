@@ -10,45 +10,54 @@ import service.ExchangeRateService;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Optional;
 
-import static errorHandle.ErrorHandler.getMessage;
-import static errorHandle.Validation.isValidCurrencyCode;
+import static utils.errorHandle.ErrorHandler.getMessage;
+import static utils.errorHandle.Validation.isValidCurrencyCode;
+import static utils.errorHandle.Validation.isValidRateAndAmount;
 
 @WebServlet(name = "ExchangeServlet", urlPatterns = "/exchange")
 public class ExchangeServlet extends HttpServlet {
+    private static final int NOT_ISO_FORMAT = 4217;
+    private static final int SAME_CODES_ERROR = 1000;
+    private static final int NUMBER_INCORRECT_INPUT_ERROR = 888;
     private final ExchangeRateService exchangeRateService = ExchangeRateService.getInstance();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String from = req.getParameter("from");
-        String to = req.getParameter("to");
-        BigDecimal amount;
+        String baseCurrencyCode = req.getParameter("from");
+        String targetCurrencyCode = req.getParameter("to");
+        String sAmount = req.getParameter("amount");
+        BigDecimal amount = new BigDecimal(sAmount);
 
 
-        if (from == null || to == null || from.isBlank() || to.isBlank()) {
+        if (baseCurrencyCode == null || targetCurrencyCode == null || baseCurrencyCode.isBlank() || targetCurrencyCode.isBlank()) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.getWriter().write(getMessage(resp));
             return;
         }
 
-        try {
-            amount = BigDecimal.valueOf(Float.parseFloat(req.getParameter("amount")));
-        } catch (NumberFormatException e) {
+        if (!isValidCurrencyCode(baseCurrencyCode) || !isValidCurrencyCode(targetCurrencyCode)) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(getMessage(resp));
+            resp.getWriter().write(getMessage(NOT_ISO_FORMAT));
             return;
         }
 
-        if (!isValidCurrencyCode(from) || !isValidCurrencyCode(to)) {
+        if (baseCurrencyCode.equals(targetCurrencyCode)){
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(getMessage(4217));
+            resp.getWriter().write((getMessage(SAME_CODES_ERROR)));
+            return;
+        }
+
+        if (!isValidRateAndAmount(amount)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write(getMessage(NUMBER_INCORRECT_INPUT_ERROR));
             return;
         }
 
         try {
-            ExchangeDto converted = exchangeRateService.convert(from, to, amount);
+
+            ExchangeDto converted = exchangeRateService.convert(baseCurrencyCode, targetCurrencyCode, amount);
             resp.getWriter().write(objectMapper.writeValueAsString(converted));
         } catch (RuntimeException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);

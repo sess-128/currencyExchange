@@ -13,11 +13,13 @@ import service.CurrencyService;
 import java.io.IOException;
 import java.util.List;
 
-import static errorHandle.ErrorHandler.getMessage;
-import static errorHandle.Validation.isValidCurrencyCode;
+import static utils.errorHandle.ErrorHandler.getMessage;
+import static utils.errorHandle.Validation.*;
 
 @WebServlet(name = "CurrenciesServlet", urlPatterns = "/currencies")
 public class CurrenciesServlet extends HttpServlet {
+    private static final int MAX_LENGTH_ERROR = 777;
+    private static final int NOT_ISO_FORMAT = 4217;
     private final CurrencyService currencyService = CurrencyService.getInstance();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -39,17 +41,13 @@ public class CurrenciesServlet extends HttpServlet {
         String name = req.getParameter("name");
         String sign = req.getParameter("sign");
 
-        if (name == null || name.isBlank()) {
+        if (name == null || code == null || sign == null) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.getWriter().write(getMessage(resp));
             return;
         }
-        if (code == null || code.isBlank()) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(getMessage(resp));
-            return;
-        }
-        if (sign == null || sign.isBlank()) {
+
+        if (name.isBlank() || code.isBlank() || sign.isBlank()) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.getWriter().write(getMessage(resp));
             return;
@@ -57,7 +55,13 @@ public class CurrenciesServlet extends HttpServlet {
 
         if (!isValidCurrencyCode(code)) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(getMessage(4217));
+            resp.getWriter().write(getMessage(NOT_ISO_FORMAT));
+            return;
+        }
+
+        if (!isCorrectLength(name, sign)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write(getMessage(MAX_LENGTH_ERROR));
             return;
         }
 

@@ -69,13 +69,13 @@ public class ExchangeRateService {
         ExchangeRate exchangeRate = exchangeRateDao.findByPair(baseCurrencyCode, targetCurrencyCode)
                 .orElseThrow(ExchangeRateNotFoundException::new);
 
-        ExchangeRate exchangeRate1 = new ExchangeRate(exchangeRate.getId(), baseCurrency, targetCurrency, rates.setScale(2, RoundingMode.HALF_DOWN));
+        ExchangeRate exchangeRate1 = new ExchangeRate(exchangeRate.getId(), baseCurrency, targetCurrency, rates);
         exchangeRateDao.update(exchangeRate1);
 
-        return new ExchangeRateDto(exchangeRate1.getId(), baseCurrency, targetCurrency, rates);
+        return new ExchangeRateDto(exchangeRate1.getId(), baseCurrency, targetCurrency, rates.setScale(2, RoundingMode.HALF_DOWN));
     }
 
-    public ExchangeDto convert (String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) {
+    public ExchangeDto convert(String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) {
         ExchangeRate exchangeRate = getSimpleExchange(baseCurrencyCode, targetCurrencyCode);
 
         BigDecimal convertedAmount = amount.multiply(exchangeRate.getRate());
@@ -89,14 +89,23 @@ public class ExchangeRateService {
         );
     }
 
-    private ExchangeRate getSimpleExchange (String baseCurrencyCode, String targetCurrencyCode) {
+    private ExchangeRate getSimpleExchange(String baseCurrencyCode, String targetCurrencyCode) {
         Optional<ExchangeRate> exchangeRate = exchangeRateDao.findByPair(baseCurrencyCode, targetCurrencyCode);
 
         if (exchangeRate.isEmpty()) {
             exchangeRate = exchangeRateDao.findByPair(targetCurrencyCode, baseCurrencyCode);
+            if (exchangeRate.isPresent()) {
+                BigDecimal invertedRate = BigDecimal.ONE.divide(exchangeRate.get().getRate(), DECIMAL64);
+                return new ExchangeRate(
+                        null,
+                        exchangeRate.get().getTargetCurrency(),
+                        exchangeRate.get().getBaseCurrency(),
+                        invertedRate
+                );
+            }
         }
 
-        if (exchangeRate.isEmpty()){
+        if (exchangeRate.isEmpty()) {
             exchangeRate = getCrossExchange(baseCurrencyCode, targetCurrencyCode);
         }
 
@@ -112,7 +121,7 @@ public class ExchangeRateService {
         );
     }
 
-    private Optional<ExchangeRate> getCrossExchange (String baseCurrencyCode, String targetCurrencyCode) {
+    private Optional<ExchangeRate> getCrossExchange(String baseCurrencyCode, String targetCurrencyCode) {
 
         List<ExchangeRate> ratesWithUsdBase = new ArrayList<>();
 
@@ -121,7 +130,6 @@ public class ExchangeRateService {
 
         ratesWithUsdBase.add(fromUSDToBase.get());
         ratesWithUsdBase.add(fromUSDToTarget.get());
-
 
         BigDecimal usdToBaseRate = fromUSDToBase.get().getRate();
         BigDecimal usdToTargetRate = fromUSDToTarget.get().getRate();
@@ -137,7 +145,6 @@ public class ExchangeRateService {
 
         return Optional.of(exchangeRate);
     }
-
 
 
     public static ExchangeRateService getInstance() {

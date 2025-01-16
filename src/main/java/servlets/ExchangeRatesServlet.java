@@ -15,11 +15,15 @@ import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static errorHandle.ErrorHandler.getMessage;
-import static errorHandle.Validation.isValidCurrencyCode;
+import static utils.errorHandle.ErrorHandler.getMessage;
+import static utils.errorHandle.Validation.isValidCurrencyCode;
+import static utils.errorHandle.Validation.isValidRateAndAmount;
 
 @WebServlet(name = "ExchangeRatesServlet", urlPatterns = "/exchangeRates/*")
 public class ExchangeRatesServlet extends HttpServlet {
+    private static final int NOT_ISO_FORMAT = 4217;
+    private static final int SAME_CODES_ERROR = 1000;
+    private static final int NUMBER_INCORRECT_INPUT_ERROR = 888;
     private final ExchangeRateService exchangeRateService = ExchangeRateService.getInstance();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -39,9 +43,13 @@ public class ExchangeRatesServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String baseCurrencyCode = req.getParameter("baseCurrencyCode");
         String targetCurrencyCode = req.getParameter("targetCurrencyCode");
-        BigDecimal rate = BigDecimal.valueOf(Float.parseFloat((req.getParameter("rate"))));
+        String rate2 = req.getParameter("rate");
 
-        if (baseCurrencyCode == null || targetCurrencyCode == null || BigDecimal.ZERO.equals(rate)) {
+        BigDecimal rate = new BigDecimal(rate2);
+
+
+
+        if (baseCurrencyCode == null || targetCurrencyCode == null) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             resp.getWriter().write(getMessage(resp));
             return;
@@ -49,7 +57,20 @@ public class ExchangeRatesServlet extends HttpServlet {
 
         if (!isValidCurrencyCode(baseCurrencyCode) || !isValidCurrencyCode(targetCurrencyCode)) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(getMessage(4217));
+            resp.getWriter().write(getMessage(NOT_ISO_FORMAT));
+            return;
+        }
+
+
+
+        if (baseCurrencyCode.equals(targetCurrencyCode)){
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write((getMessage(SAME_CODES_ERROR)));
+            return;
+        }
+        if (!isValidRateAndAmount(rate)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write(getMessage(NUMBER_INCORRECT_INPUT_ERROR));
             return;
         }
 
